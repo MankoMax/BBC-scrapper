@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from .models import News
 from selenium.common.exceptions import NoSuchElementException
 import time
+from .utils import add_data_to_excel_file
 
 
 class BBCParser(SeleniumParser):
@@ -37,6 +38,11 @@ class BBCParser(SeleniumParser):
             news, created = News.objects.get_or_create(title=header, description=body, url=link)
             if created:
                 news.save()
+                data = news.__dict__
+                try:
+                    add_data_to_excel_file(data)
+                except Exception as e:
+                    print(e)
         raise Exception("Article can not be generated") 
     
     
@@ -46,6 +52,10 @@ class BBCParser(SeleniumParser):
             body_content = self.driver.find_element(by=By.CSS_SELECTOR, value="div.article__body-content")
             contents = body_content.find_elements(by=By.CSS_SELECTOR, value="p")
             for content in contents:
+                if "@BBCBreaking" in content.text:
+                    continue
+                if "© 2022 BBC" in content.text:
+                    continue
                 body = body + "\n" + content.text
         except NoSuchElementException:
             try:
@@ -57,11 +67,19 @@ class BBCParser(SeleniumParser):
                         text = p.get_attribute('innerText')
                     if not text:
                         text = p.get_attribute('textContent')
+                    if "@BBCBreaking" in text:
+                        continue
+                    if "© 2022 BBC" in text:
+                        continue
                     body = body + "\n" + text
             except NoSuchElementException:
                 try:
                     data_components = self.driver.find_elements(by=By.XPATH, value="//div[@data-component='text-block']")   
                     for data_component in data_components:
+                        if "@BBCBreaking" in data_component.text:
+                            continue
+                        if "© 2022 BBC" in data_component.text:
+                            continue
                         body = body + "\n" + data_component.text
                 except NoSuchElementException:
                     try:

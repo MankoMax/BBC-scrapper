@@ -10,6 +10,7 @@ Django = "^4.1.4"
 webdriver-manager = "^3.8.5"
 selenium = "^4.7.2"
 django-crontab = "^0.7.1"
+openpyxl = "^3.0.10"
 
 [tool.poetry.dev-dependencies]
 
